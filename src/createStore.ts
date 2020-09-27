@@ -14,6 +14,18 @@ import ActionTypes from './utils/actionTypes'
 import isPlainObject from './utils/isPlainObject'
 
 /**
+ * 1. 创建一个store、存储状态树
+ * 2. 修改store中的状态唯一的方式就是调用store.dispatch()
+ * 3. 一个应用我们只应该创建一个store
+ * 4. 使用combineReducers可以合并多个reducer为一个reducer
+ * 5. reducer: 一个函数：入参(当前状态S，Action) => 返回新的状态树
+ * 6. preloadedState: 初始时的 state。
+ * 在同构应用中，你可以决定是否把服务端传来的 state 水合（hydrate）后传给它，或者从之前保存的用户会话中恢复一个传给它。
+ * 如果你使用 combineReducers 创建 reducer，它必须是一个普通对象，
+ * 与传入的 keys 保持同样的结构。否则，你可以自由传入任何 reducer 可理解的内容。
+ * 7. enhancer: store增强器，可选的，可以集成一些第三方的插件
+ * 8. 返回的store: 读取state、dispatch(action)、subscribe
+ *
  * Creates a Redux store that holds the state tree.
  * The only way to change the data in the store is to call `dispatch()` on it.
  *
@@ -67,6 +79,7 @@ export default function createStore<
   preloadedState?: PreloadedState<S> | StoreEnhancer<Ext, StateExt>,
   enhancer?: StoreEnhancer<Ext, StateExt>
 ): Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext {
+  // 一些数据类型校验
   if (
     (typeof preloadedState === 'function' && typeof enhancer === 'function') ||
     (typeof enhancer === 'function' && typeof arguments[3] === 'function')
@@ -78,6 +91,7 @@ export default function createStore<
     )
   }
 
+  // 处理两个参数情况下：preloadedState为enhancer
   if (typeof preloadedState === 'function' && typeof enhancer === 'undefined') {
     enhancer = preloadedState as StoreEnhancer<Ext, StateExt>
     preloadedState = undefined
@@ -88,6 +102,7 @@ export default function createStore<
       throw new Error('Expected the enhancer to be a function.')
     }
 
+    // 返回store
     return enhancer(createStore)(
       reducer,
       preloadedState as PreloadedState<S>
@@ -98,10 +113,15 @@ export default function createStore<
     throw new Error('Expected the reducer to be a function.')
   }
 
+  // 存储当前store中的reducer
   let currentReducer = reducer
+  // 存储当前的state
   let currentState = preloadedState as S
+  // 用一个数组存储当前的监听器
   let currentListeners: (() => void)[] | null = []
+  // 下一次dispatch时候执行的监听器函数列表
   let nextListeners = currentListeners
+  // 标示
   let isDispatching = false
 
   /**
