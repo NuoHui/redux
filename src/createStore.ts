@@ -121,10 +121,16 @@ export default function createStore<
   let currentListeners: (() => void)[] | null = []
   // 下一次dispatch时候执行的监听器函数列表
   let nextListeners = currentListeners
-  // 标示
+  // 标示当前正在处理dispatch
+  // 避免的常见场景有：
+  // reducer里面执行dispatch
+  // reducer里面执行subscribe、unsubscribe
   let isDispatching = false
 
   /**
+   * 如果在reducer里面执行subscribe、unsubscribe
+   * 那么会导致对listeners存在共同修改的风险
+   * 因此currentListeners、nextListeners ensureCanMutateNextListeners 就是用来解决这个问题的
    * This makes a shallow copy of currentListeners so we can use
    * nextListeners as a temporary list while dispatching.
    *
@@ -132,6 +138,7 @@ export default function createStore<
    * subscribe/unsubscribe in the middle of a dispatch.
    */
   function ensureCanMutateNextListeners() {
+    // 从currentListeners拷贝一份到nextListeners
     if (nextListeners === currentListeners) {
       nextListeners = currentListeners.slice()
     }
@@ -139,7 +146,7 @@ export default function createStore<
 
   /**
    * Reads the state tree managed by the store.
-   *
+   * 从状态树读取状态
    * @returns The current state tree of your application.
    */
   function getState(): S {
@@ -182,6 +189,7 @@ export default function createStore<
       throw new Error('Expected the listener to be a function.')
     }
 
+    // subscribe、unsubscribe内也不允许执行dispatch
     if (isDispatching) {
       throw new Error(
         'You may not call store.subscribe() while the reducer is executing. ' +
@@ -194,9 +202,14 @@ export default function createStore<
     let isSubscribed = true
 
     ensureCanMutateNextListeners()
+    // 每次在listener回调执行订阅(subscribe)操作的一个新listener
+    // 不会在此次正在进行的dispatch中调用，因此dispatch操作的是currentListeners
+    // 它只会在下一次dispatch中调用,因此 subscribe、unsubscribe操作的是nextListeners
     nextListeners.push(listener)
 
+    // 返回取消订阅的函数
     return function unsubscribe() {
+      // 如果已经取消过
       if (!isSubscribed) {
         return
       }
@@ -257,17 +270,19 @@ export default function createStore<
       )
     }
 
+    // reducer里面不允许再次执行dispatch, 会有性能问题 不断渲染listeners
     if (isDispatching) {
       throw new Error('Reducers may not dispatch actions.')
     }
 
     try {
       isDispatching = true
+      // combineReducers返回的是一个函数
       currentState = currentReducer(currentState, action)
     } finally {
       isDispatching = false
     }
-
+    // dispatch从currentListeners获取数据操作
     const listeners = (currentListeners = nextListeners)
     for (let i = 0; i < listeners.length; i++) {
       const listener = listeners[i]
