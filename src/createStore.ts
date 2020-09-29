@@ -131,6 +131,7 @@ export default function createStore<
    * 如果在reducer里面执行subscribe、unsubscribe
    * 那么会导致对listeners存在共同修改的风险
    * 因此currentListeners、nextListeners ensureCanMutateNextListeners 就是用来解决这个问题的
+   * ensureCanMutateNextListeners就是为了拷贝一份数据而已，隔离subscribe、unsubscribe与dispatch操作不同的数据源
    * This makes a shallow copy of currentListeners so we can use
    * nextListeners as a temporary list while dispatching.
    *
