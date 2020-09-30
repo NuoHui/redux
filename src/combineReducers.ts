@@ -201,15 +201,18 @@ export default function combineReducers(reducers: ReducersMapObject) {
       const reducer = finalReducers[key]
       const previousStateForKey = state[key]
       const nextStateForKey = reducer(previousStateForKey, action)
+      // 需要特别注意state为undefined的情况
       if (typeof nextStateForKey === 'undefined') {
         const errorMessage = getUndefinedStateErrorMessage(key, action)
         throw new Error(errorMessage)
       }
+      // 存储更新后的state
       nextState[key] = nextStateForKey
+      // 每次循环对比新旧state
       hasChanged = hasChanged || nextStateForKey !== previousStateForKey
     }
     hasChanged =
-      hasChanged || finalReducerKeys.length !== Object.keys(state).length
+      hasChanged || finalReducerKeys.length !== Object.keys(state).length // 对比有没有新增或者删除reducer
     return hasChanged ? nextState : state
   }
 }
