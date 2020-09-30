@@ -102,12 +102,16 @@ export default function createStore<
       throw new Error('Expected the enhancer to be a function.')
     }
 
-    // 返回store
+    // enhancer有效的情况下
+    // 接受一个createStore参数，返回一个加强的createStore
+    // 这也是为什么如果你一旦使用了增强器(or 中间件)，那么你的action处理流程会先经过这些中间件处理
     return enhancer(createStore)(
       reducer,
       preloadedState as PreloadedState<S>
     ) as Store<ExtendState<S, StateExt>, A, StateExt, Ext> & Ext
   }
+
+  // 后面流程就是没有enhancer的时候创建store
 
   if (typeof reducer !== 'function') {
     throw new Error('Expected the reducer to be a function.')
