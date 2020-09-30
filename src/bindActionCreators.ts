@@ -6,9 +6,11 @@ import {
 } from './types/actions'
 
 function bindActionCreator<A extends AnyAction = AnyAction>(
+  // actionCreator： actor 创建函数
   actionCreator: ActionCreator<A>,
   dispatch: Dispatch
 ) {
+  // 返回函数通过dispatch包装，可以直接调用
   return function (this: any, ...args: any[]) {
     return dispatch(actionCreator.apply(this, args))
   }
@@ -66,6 +68,7 @@ export default function bindActionCreators(
     return bindActionCreator(actionCreators, dispatch)
   }
 
+  // 类型检查
   if (typeof actionCreators !== 'object' || actionCreators === null) {
     throw new Error(
       `bindActionCreators expected an object or a function, instead received ${
@@ -76,11 +79,11 @@ export default function bindActionCreators(
   }
 
   const boundActionCreators: ActionCreatorsMapObject = {}
+  // 遍历对象，挨个取出通过dispatch包装并存储
   for (const key in actionCreators) {
     // 取出action creator
     const actionCreator = actionCreators[key]
     if (typeof actionCreator === 'function') {
-      // dispatch包装后的对象
       boundActionCreators[key] = bindActionCreator(actionCreator, dispatch)
     }
   }
