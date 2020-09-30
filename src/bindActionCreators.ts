@@ -54,10 +54,14 @@ export default function bindActionCreators<
   N extends ActionCreatorsMapObject
 >(actionCreators: M, dispatch: Dispatch): N
 
+// 把一个 value 为不同 action creator 的对象，转成拥有同名 key 的对象。
+// 同时使用 dispatch 对每个 action creator 进行包装，以便可以直接调用它们。
 export default function bindActionCreators(
+  // actionCreators： 一个 action creator，或者一个 value 是 action creator 的对象。
   actionCreators: ActionCreator<any> | ActionCreatorsMapObject,
   dispatch: Dispatch
 ) {
+  // 如果传入一个单独的函数作为 actionCreators，那么返回的结果也是一个单独的函数。
   if (typeof actionCreators === 'function') {
     return bindActionCreator(actionCreators, dispatch)
   }
@@ -73,10 +77,30 @@ export default function bindActionCreators(
 
   const boundActionCreators: ActionCreatorsMapObject = {}
   for (const key in actionCreators) {
+    // 取出action creator
     const actionCreator = actionCreators[key]
     if (typeof actionCreator === 'function') {
+      // dispatch包装后的对象
       boundActionCreators[key] = bindActionCreator(actionCreator, dispatch)
     }
   }
   return boundActionCreators
 }
+
+
+// 使用示例
+
+// const mapStateToProps = (state: any) => ({
+//   pageState: state.customerAcPageState
+// })
+
+// const mapDispatchToProps = (dispatch: Dispatch) =>
+//   bindActionCreators(
+//     {
+//       customerAcPageState
+//     },
+//     dispatch
+//   )
+// export default connect(mapStateToProps, mapDispatchToProps)(ManageCustomAct)
+
+// this.props.customerAcPageState({})
