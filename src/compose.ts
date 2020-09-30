@@ -42,7 +42,7 @@ export default function compose<R>(
 ): (...args: any[]) => R
 
 export default function compose<R>(...funcs: Function[]): (...args: any[]) => R
-
+// 把多个函数组合为一个函数调用
 export default function compose(...funcs: Function[]) {
   if (funcs.length === 0) {
     // infer the argument type so it is usable in inference down the line
@@ -55,3 +55,40 @@ export default function compose(...funcs: Function[]) {
 
   return funcs.reduce((a, b) => (...args: any) => a(b(...args)))
 }
+
+
+// function compose(...funcs) {
+//   if (funcs.length === 0) {
+//     // infer the argument type so it is usable in inference down the line
+//     return;
+//   }
+
+//   if (funcs.length === 1) {
+//     return funcs[0];
+//   }
+
+//   return funcs.reduce((a, b) => (...args) => a(b(...args)));
+// }
+
+// const f1 = (a) => {
+//   console.log("f1" + a);
+//   return "f1" + a;
+// };
+// const f2 = (a) => {
+//   console.log("f2" + a);
+//   return "f2" + a;
+// };
+// const f3 = (a) => {
+//   console.log("f3" + a);
+//   return "f3" + a;
+// };
+
+// var a = compose(f1, f2, f3)("xyz");
+// console.log("a answer is: ", a);
+/**
+ *
+  f3xyz
+  f2f3xyz
+  f1f2f3xyz
+  a answer is:  f1f2f3xyz
+ */
