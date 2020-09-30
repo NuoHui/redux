@@ -296,6 +296,7 @@ export default function createStore<
   /**
    * Replaces the reducer currently used by the store to calculate the state.
    *
+   * 多用于动态替换reducer、或者实现热加载使用
    * You might need this if your app implements code splitting and you want to
    * load some of the reducers dynamically. You might also need this if you
    * implement a hot reloading mechanism for Redux.
@@ -311,6 +312,7 @@ export default function createStore<
     }
 
     // TODO: do this more elegantly
+    // 替换currentReducer
     ;((currentReducer as unknown) as Reducer<
       NewState,
       NewActions
@@ -320,6 +322,7 @@ export default function createStore<
     // Any reducers that existed in both the new and old rootReducer
     // will receive the previous state. This effectively populates
     // the new state tree with any relevant data from the old one.
+    // 手动dispatch: 后面会用新的reducer来初始化state产生新的state
     dispatch({ type: ActionTypes.REPLACE } as A)
     // change the type of the store by casting it to the new store
     return (store as unknown) as Store<
