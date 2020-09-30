@@ -74,6 +74,8 @@ function getUnexpectedStateShapeWarningMessage(
   }
 }
 
+// 检查reducers里面的reducer接受一个未知的action以及初始化的state
+// 是否还是可以返回有效的state
 function assertReducerShape(reducers: ReducersMapObject) {
   Object.keys(reducers).forEach(key => {
     const reducer = reducers[key]
@@ -137,7 +139,9 @@ export default function combineReducers<M extends ReducersMapObject>(
   ActionFromReducersMapObject<M>
 >
 export default function combineReducers(reducers: ReducersMapObject) {
+  // 获取reducers对象的key array
   const reducerKeys = Object.keys(reducers)
+  // 存储有效的reducer
   const finalReducers: ReducersMapObject = {}
   for (let i = 0; i < reducerKeys.length; i++) {
     const key = reducerKeys[i]
@@ -156,11 +160,13 @@ export default function combineReducers(reducers: ReducersMapObject) {
 
   // This is used to make sure we don't warn about the same
   // keys multiple times.
+  // 缓存重复的key
   let unexpectedKeyCache: { [key: string]: true }
   if (process.env.NODE_ENV !== 'production') {
     unexpectedKeyCache = {}
   }
 
+  // 接受assertReducerShape校验的异常Error
   let shapeAssertionError: Error
   try {
     assertReducerShape(finalReducers)
